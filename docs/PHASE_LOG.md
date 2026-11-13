@@ -505,5 +505,44 @@ System Chrome driven by `puppeteer-core` (`--no-save`). The visual suite covers 
 **Deliberately not changed**
 
 - No new data source, vehicle, seat, route, or ETA was introduced. The schematic reads engine helpers; the splash reads nothing.
-- No dispatch, contact, authentication, or deployment behavior was added.
+- No dispatch, contact, or authentication behavior was added in Phase 16.
 - No approved-seat behavior was touched; all recovery constraints and late-replan rules remain as verified in Phases 8–15.
+
+---
+
+## Phase 17 — GitHub Pages deployment
+
+**Completed**
+
+- Added `.github/workflows/deploy.yml`: every push to `main` and every manual dispatch checks out the repository, installs Node 22 with npm caching, runs `npm ci`, lint, and the 105 unit tests, builds with `BASE_PATH=/routeless/`, and publishes `dist/` through the Pages artifact flow. Failures in lint, tests, or build stop the deploy.
+- Restricted the workflow token to `contents: read`, `pages: write`, and `id-token: write`, with a `pages` concurrency group and no cancellation of an in-flight deployment.
+- Added `base: process.env.BASE_PATH ?? '/'` to `vite.config.ts`, so local development and preview stay at `/` while the hosted build resolves assets and the favicon under `/routeless/`.
+- Enabled Pages once with **GitHub Actions** as the source, then removed the workflow's `enablement: true` attempt. The current `configure-pages` documentation confirms enablement requires a token other than `GITHUB_TOKEN`, so the workflow now only reads the existing configuration.
+- Updated the workflow actions to their current majors: `checkout@v7`, `setup-node@v7`, `configure-pages@v6`, `upload-pages-artifact@v5`, `deploy-pages@v5`.
+- Published https://udbhavnc7.github.io/routeless/ and verified the live build directly.
+
+**First-run failure and fix**
+
+The first run built and tested successfully but failed at `Configure Pages` with `HttpError: Resource not accessible by integration`. The workflow token cannot create a Pages site. Pages was enabled once with the authenticated account (`POST /repos/udbhavnc7/routeless/pages`, `build_type=workflow`), the failed build job was rerun, and the deploy job completed. The misleading enablement flag was then removed.
+
+**Commands and actual results**
+
+| Command | Result |
+|---|---|
+| `npm run lint` | 0 warnings, 0 errors on 48 files |
+| `npx vitest run` | 10 files, 105 tests passed |
+| `MSYS_NO_PATHCONV=1 BASE_PATH=/routeless/ npm run build` | succeeded; index references `/routeless/assets/…` and `/routeless/favicon.svg` |
+| GitHub Actions run `43432079019` | lint, tests, build, configure, upload, and deploy all succeeded |
+| `curl` live HTML, JS, CSS, favicon | 200, 200, 200, 200 |
+| `node .screenshots/verify-deploy.mjs` | 11/11 checks passed; zero console/page errors and zero failed responses |
+| Live mobile 375 px | `scrollWidth === clientWidth === 375` |
+
+**Verification method**
+
+The live URL was loaded in system Chrome through `puppeteer-core`: splash modal and WebGL canvas, Enter dismissal, student view, coordinator switch, network schematic, simulated-data disclosure, `?skipIntro=1`, mobile overflow, console errors, and HTTP failures. Screenshots: `.screenshots/deployed-intro.png`, `deployed-desktop.png`, `deployed-mobile.png`.
+
+**Deliberately not changed**
+
+- No backend, environment variable, secret, analytics, or build-time data was added. The deployed build is the same static client as local.
+- No transport, dispatch, contact, or authentication behavior changed.
+- The local headless suites are not run in CI because they need an installed Chrome; lint, unit tests, and the production build are the deployment gates.

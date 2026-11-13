@@ -7,7 +7,8 @@ ROUTELESS is a mobile-first decision-support prototype for rural student transpo
 > **This is a simulated demonstration, not a live transport service.** No real buses, schools, government feeds, GPS, SMS, or dispatch systems are connected. Every village, vehicle, student, seat count, and time is fictional demo data stored in the visitor's browser.
 
 **Built for:** Aerophilia 2K26 Prompt Battle
-**Current status:** Visual system overhaul complete — a Three.js route-lattice splash, a data-driven network schematic, and a paper-operations UI on top of all five scenarios and the exam-day crisis
+**Current status:** Deployed — visual system overhaul complete, with a Three.js route-lattice splash, a data-driven network schematic, and a paper-operations UI on top of all five scenarios and the exam-day crisis
+**Live demo:** https://udbhavnc7.github.io/routeless/
 **Tagline used in-app:** When the bus fails, the journey shouldn't end.
 
 ---
@@ -41,7 +42,13 @@ npm install
 npm run dev
 ```
 
-Vite prints a local URL (typically `http://localhost:5173`). Open it in a desktop or mobile-sized viewport.
+Vite prints a local URL (typically `http://localhost:5173`). Open it in a desktop or mobile-sized viewport. The hosted build lives at https://udbhavnc7.github.io/routeless/.
+
+## Deployment
+
+Every push to `main` runs [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml), which lints, runs the 105 unit tests, builds with the `/routeless/` project-site base path, and publishes `dist/` to GitHub Pages. A failed lint, test, or build blocks deployment.
+
+Pages is configured once with **GitHub Actions** as its source; the workflow itself does not need repository-administration rights. To ship a manual rebuild, run the workflow from the Actions tab. The site is a static client-side build with no backend, environment variables, or secrets.
 
 ## Commands
 
@@ -158,7 +165,9 @@ npm run test
 
 The suite (10 files, 105 tests) covers seed consistency, duplicate prevention, confirm/dismiss transitions, reset equality, student stage derivation, derived affected counts, reachable backup capacity, free-seat calculation, localStorage validation (including unknown scenario IDs), every eligibility constraint, deterministic priority, the 8/4 plan, idempotent recompute, approval-time capacity re-checks, rejection, zero-backup behavior, all five scenario seeds, the exam-day crisis (two incidents, 17 expected students, five exams, emergency minibus, per-incident plans, shared-fleet approval, blocked-road outcomes, late replan), scoped late replanning, supplemental approval, approved-plan immutability, and splash gating (first visit, session flag, `?skipIntro=1`, `?intro=0`, `?intro=1`, broken storage).
 
-UI flows were additionally checked headlessly (system Chrome + Puppeteer, `puppeteer-core` installed with `--no-save`) across desktop and 375 px mobile with 232 assertions: report → confirm → draft → approve → late report → supplemental draft → supplemental approval → scenario switches → the full crisis flow → reset, plus 29 splash and schematic checks (modal semantics, focus trap, Enter/Esc, auto-dismiss, `intro`/`skipIntro` parameters, session persistence, reduced motion, a WebGL-disabled fallback, and schematic status copy). All flow scripts run against `?skipIntro=1`; screenshots live in `.screenshots/`.
+UI flows were additionally checked headlessly (system Chrome + Puppeteer, `puppeteer-core` installed with `--no-save`) across desktop and 375 px mobile with 232 assertions: report → confirm → draft → approve → late report → supplemental draft → supplemental approval → scenario switches → the full crisis flow → reset, plus 29 splash and schematic checks (modal semantics, focus trap, Enter/Esc, auto-dismiss, `intro`/`skipIntro` parameters, session persistence, reduced motion, a WebGL-disabled fallback, and schematic status copy). All flow scripts run against `?skipIntro=1`; screenshots live in `.screenshots/`. The deployed URL was separately checked with 11 headless assertions covering the splash, role switch, schematic, disclosures, and mobile overflow.
+
+CI runs lint, the unit suite, and the production build on every push to `main`; the headless suites stay local because they need an installed Chrome.
 
 ## Known limitations (exam-day crisis)
 
@@ -171,15 +180,14 @@ UI flows were additionally checked headlessly (system Chrome + Puppeteer, `puppe
 - **Not authentication.** The Student/Coordinator switch is a demo view toggle, not access control.
 - **Static demo clock.** The app always starts at 08:00 and does not advance; all times are schedule-based.
 - **No live data, maps, routing, or ETA feeds.** Travel times and stop times are fixed fixtures.
-- **Not deployed yet.** Public deployment and the public repository are later milestones.
+- **Hosted, not operated.** GitHub Pages serves the static build; there is no backend, real dispatch, or per-user account. Demo state stays in the visitor's browser.
 - No CSV import/export, offline queue, LLM triage, or multi-device sync.
 
 ## Recommended next scope
 
-1. Deployment and public repository, with the demo limitations repeated in the hosted build.
-2. An external accessibility audit of the new night/paper contrast pairs and the 3D handoff, beyond the built-in focus trap, reduced-motion path, and keyboard dismissal.
-3. A coordinator-initiated review flow for a changed crisis, still requiring explicit human approval and never rewriting confirmed seats silently.
-4. Product narrative assets: the crisis and splash screenshots already exist in `.screenshots/`, plus a short demo script and a README walkthrough tightened to 60 seconds.
+1. An external accessibility audit of the new night/paper contrast pairs and the 3D handoff, beyond the built-in focus trap, reduced-motion path, and keyboard dismissal.
+2. A coordinator-initiated review flow for a changed crisis, still requiring explicit human approval and never rewriting confirmed seats silently.
+3. Product narrative assets: the crisis and splash screenshots already exist in `.screenshots/`, plus a short demo script and a README walkthrough tightened to 60 seconds.
 
 ## Documentation
 

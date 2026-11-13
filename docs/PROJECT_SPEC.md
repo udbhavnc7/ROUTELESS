@@ -2,7 +2,7 @@
 
 **Product:** ROUTELESS — The Last Mile
 **Purpose:** Rural student transportation recovery and coordination
-**Status:** Visual overhaul complete and verified — Three.js opening scene, derived network schematic, and a night/paper operations UI over the five scenarios and exam-day crisis
+**Status:** Deployed and verified — Three.js opening scene, derived network schematic, night/paper operations UI, five scenarios, and the exam-day crisis, published to GitHub Pages by CI
 **Nature of the build:** A simulated, local-first decision-support prototype. No live transport data, dispatch, school contact, or authentication exists.
 
 ---
@@ -371,10 +371,20 @@ When two incidents are confirmed (the exam-day crisis), each keeps its own propo
 | All pre-existing flows and safety constraints still behave identically | 105 unit tests; 203 flow assertions; build, typecheck, lint |
 | Three.js stays out of the main bundle | Production build output: separate dynamic `introScene` chunk |
 
-## 18. Out of scope for this build
+## 18. Deployment
 
-Real authentication, backend, maps, routing or detour search, live feeds, notifications, payments, LLM triage, CSV import/export, revocation or movement of approved seats, cross-incident repacking of approved plans, cross-device sync, deployment, and the public repository.
+- The site is published at https://udbhavnc7.github.io/routeless/ from the public repository `udbhavnc7/routeless`.
+- `.github/workflows/deploy.yml` runs on every push to `main` and on manual dispatch: checkout, Node 22 with npm cache, `npm ci`, lint, unit tests, production build with `BASE_PATH=/routeless/`, Pages configuration, artifact upload, and deployment.
+- Lint, test, or build failures block deployment. The deploy job receives only `pages: write` and `id-token: write`; repository contents stay read-only.
+- Vite's `base` comes from `BASE_PATH`, defaulting to `/` for local development and preview. Asset URLs in the built HTML therefore resolve under the project subpath.
+- Pages is enabled once with **GitHub Actions** as the source. The workflow deliberately does not attempt to create the Pages site, because `GITHUB_TOKEN` cannot perform that administrative call; `configure-pages` only reads the existing configuration.
+- There is no backend, environment variable, secret, or build-time data source. The deployed build is the same static client used locally, with the same simulated-data disclosures.
+- A deployment is verified by HTTP status for the HTML, JS, CSS, and favicon, plus an 11-check headless run against the live URL covering the splash, role switch, schematic, disclosures, and mobile overflow.
 
-## 18. Future integration notes
+## 19. Out of scope for this build
+
+Real authentication, backend, maps, routing or detour search, live feeds, notifications, payments, LLM triage, CSV import/export, revocation or movement of approved seats, cross-incident repacking of approved plans, and cross-device sync.
+
+## 20. Future integration notes
 
 The data layer is intentionally separable: `AppState` and domain helpers have no React or storage dependencies. A real backend could replace `persistence.ts` with an API adapter while keeping the reducer's transitions. Before any pilot: authenticated school roles, server-side capacity transactions, audit logs, consent and minors' data policy, and verified operator onboarding. None of that exists in this prototype.

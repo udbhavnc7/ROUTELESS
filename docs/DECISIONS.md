@@ -265,3 +265,13 @@ Important technical and product choices, with the reasoning behind them. Scope i
 **Why:** The headless flows assert rendered copy and element adjacency, and more importantly the copy is part of the product's safety story. A redesign that renames "Confirm disruption" or drops "No real dispatch" would be a regression even if it looked better. Tokens keep the two roles visually related without duplicating one-off classes.
 
 **Consequence:** Two stale assertions were updated only where the honest copy had legitimately changed: the backup metric hint now reads "reachable verified seats", the approved-plan lock reads "Plan approved · seats final", the student ticket says "None verified" instead of naming V1, and the blocked-plan line names the actual village. No functional flow or safety rule changed.
+
+## D34 — Deploy from CI to GitHub Pages, with the base path injected
+
+**Decision:** Publish `dist/` to GitHub Pages from a workflow on every push to `main`. The build takes `BASE_PATH` from the workflow (`/<repository>/`) and Vite defaults to `/` otherwise. Lint, the unit suite, and the production build must pass before the artifact is uploaded.
+
+**Why:** The demo is a static client with no secrets or backend, so Pages is the smallest honest deployment: no extra account, no server, no runtime configuration. Injecting the base path keeps local URLs unchanged while making project-site asset URLs correct, and deriving it from `github.event.repository.name` avoids hardcoding a repository name in two places. Gating on lint and tests means the public URL cannot advance past a broken build.
+
+**Why the workflow does not enable Pages:** `GITHUB_TOKEN` cannot create a Pages site; `configure-pages` documents that `enablement: true` needs a different token. Attempting it produced `Resource not accessible by integration`. Pages is therefore enabled once with an authenticated account and the workflow only reads that configuration. Granting repository administration to a deploy workflow would be a larger permission than publishing requires.
+
+**Consequence:** Repository contents stay read-only for the build job; only the isolated deploy job gets `pages: write` and `id-token: write`. A renamed repository changes the base path on the next run, but the existing Pages URL would change with it unless a custom domain is configured. The README and spec now name the live URL and describe the static, simulated nature of the hosted build.
